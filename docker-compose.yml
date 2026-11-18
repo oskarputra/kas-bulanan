@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: kas
+      POSTGRES_PASSWORD: kas
+      POSTGRES_DB: kas_bulanan
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kas -d kas_bulanan"]
+      interval: 5s
+      retries: 10
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgres://kas:kas@db:5432/kas_bulanan
+      APP_TZ: Asia/Jakarta
+      # Hapus baris ini kalau sudah memakai HTTPS
+      INSECURE_COOKIE: "1"
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  pgdata:
