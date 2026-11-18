@@ -1,6 +1,6 @@
 # Kas Bulanan
 
-Website untuk mencatat pengeluaran bulanan berdasarkan **periode gajian**, bukan bulan kalender. Dibangun dengan Next.js 16 (App Router), PostgreSQL, dan Drizzle ORM, dengan tampilan mengikuti Apple Human Interface Guidelines.
+Website untuk mencatat pengeluaran bulanan berdasarkan **periode gajian**, bukan bulan kalender. Dibangun dengan Next.js 16 (App Router), PostgreSQL (Supabase), dan Drizzle ORM, dengan tampilan mengikuti Apple Human Interface Guidelines.
 
 ## Fitur
 
@@ -13,7 +13,32 @@ Website untuk mencatat pengeluaran bulanan berdasarkan **periode gajian**, bukan
 - **Laporan**: grafik 6 periode, perbandingan dengan rata-rata, porsi per kategori dibanding periode lalu, persentase tabungan, dan unduh CSV.
 - Tampilan responsif: tab bar di ponsel, sidebar di layar ≥ 960 px.
 
-## Menjalankan dengan Docker (paling mudah)
+## Deploy ke Vercel dengan Supabase
+
+1. **Buat project di [Supabase](https://supabase.com)** (region Singapore `ap-southeast-1` paling dekat). Catat kata sandi database-nya.
+2. Di dashboard Supabase klik **Connect**, lalu salin dua connection string:
+   - **Transaction pooler** (port `6543`) → untuk `DATABASE_URL`
+   - **Session pooler** (port `5432`) → untuk `DIRECT_URL`
+
+   Ganti `[YOUR-PASSWORD]` dengan kata sandi database. Kalau kata sandinya berisi karakter seperti `@ # / ?`, tulis dalam bentuk URL-encoded (misalnya `@` → `%40`).
+3. **Push repo ini ke GitHub**, lalu di [Vercel](https://vercel.com/new) pilih **Import** repo tersebut. Framework otomatis terdeteksi sebagai Next.js.
+4. Di **Environment Variables** isi:
+
+   | Nama | Nilai |
+   |---|---|
+   | `DATABASE_URL` | connection string Transaction pooler (6543) |
+   | `DIRECT_URL` | connection string Session pooler (5432) |
+   | `APP_TZ` | `Asia/Jakarta` |
+
+5. Klik **Deploy**. Vercel menjalankan script `vercel-build`, yang menjalankan migrasi database dulu lalu `next build`, jadi tabel langsung dibuat di Supabase. Setiap deploy berikutnya hanya menjalankan migrasi yang belum ada.
+
+Catatan:
+- Login tetap memakai sistem bawaan aplikasi (tabel `users` & `sessions`), bukan Supabase Auth. Supabase dipakai sebagai database Postgres saja.
+- Migrasi `0001_enable_rls` menyalakan Row Level Security di semua tabel tanpa policy, supaya data tidak bisa dibaca lewat Data API Supabase memakai anon key. Aplikasi konek sebagai role `postgres`, jadi tidak terpengaruh.
+- Preview deployment memakai database yang sama kalau env-nya juga diisi untuk Preview. Kalau ingin terpisah, isi env Preview dengan project Supabase lain.
+- Untuk menjalankan lokal terhadap Supabase: `cp .env.example .env`, isi kedua URL, lalu `npm run dev`.
+
+## Menjalankan dengan Docker
 
 ```bash
 docker compose up --build

@@ -10,7 +10,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node scripts/migrate.mjs",
     "test": "tsx --test tests/*.test.ts",
-    "reset-password": "node scripts/reset-password.mjs"
+    "reset-password": "node scripts/reset-password.mjs",
+    "vercel-build": "node scripts/migrate.mjs && next build"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
